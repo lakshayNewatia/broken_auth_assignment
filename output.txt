@@ -1,0 +1,85 @@
+                                        === TASK 1: LOGIN ===
+(command)
+$body = @{
+  email = "lnewatia28@gmail.com"
+  password = "password123"
+} | ConvertTo-Json
+
+$response = Invoke-RestMethod -Method POST `
+  -Uri "http://localhost:3000/auth/login" `
+  -ContentType "application/json" `
+  -Body $body
+
+$response
+
+(output)
+message  loginSessionId
+-------  --------------
+OTP sent omnlm9
+
+Session omnlm9 generated with OTP 258477
+
+
+==================================================================================================================
+                                        === TASK 2: VERIFY OTP ===
+(command)
+PS C:\Users\laksh\Downloads\broken_auth_assignment-main> $body = @{
+>>   loginSessionId = "omnlm9"
+>>   otp = "258477"
+>> } | ConvertTo-Json
+>>
+>> Invoke-RestMethod -Method POST `
+>>   -Uri "http://localhost:3000/auth/verify-otp" `
+>>   -ContentType "application/json" `
+>>   -Body $body `
+>>   -SessionVariable session
+
+
+(output)
+message      sessionId
+-------      ---------
+OTP verified omnlm9
+
+$session.Cookies
+>> 
+
+Capacity Count MaxCookieSize PerDomainCapacity
+-------- ----- ------------- -----------------
+     300     1          4096                20
+
+
+
+==================================================================================================================
+                                        === TASK 3: GET TOKEN ===
+(command)
+PS C:\Users\laksh\Downloads\broken_auth_assignment-main> $response = Invoke-RestMethod -Method POST `
+>>   -Uri "http://localhost:3000/auth/token" `
+>>   -WebSession $session
+>>
+>> $token = $response.access_token
+>> $token
+
+
+(output)
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxuZXdhdGlhMjhAZ21haWwuY29tIiwic2Vzc2lvbklkIjoib21ubG05IiwiaWF0IjoxNzcwODk4NTA2LCJleHAiOjE3NzA4OTk0MDZ9.R7Z78sncIBDdUR4HEqs_C6MhwkaYvM6tMAYExCjjnB8
+
+
+
+===================================================================================================================
+                                        === TASK 4: PROTECTED ROUTE ===
+(command)
+Invoke-RestMethod -Method GET `
+  -Uri "http://localhost:3000/protected" `
+  -Headers @{ Authorization = "Bearer $token" } | ConvertTo-Json -Depth 5
+
+
+(output)
+
+"message":  "Access granted",
+"user": {
+            "email":  "lnewatia28@gmail.com",
+            "sessionId":  "omnlm9",
+            "iat":  1770898506,
+            "exp":  1770899406
+        },
+"success_flag":  "FLAG-bG5ld2F0aWEyOEBnbWFpbC5jb21fQ09NUExFVEVEX0FTU0lHTk1FTlQ="
